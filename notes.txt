@@ -1,0 +1,29 @@
+note:if you've above route handler it will always take the above route handler
+and even if you run /hello , /test routes etc it will not print the console of those routes but will print the routes of just /route.
+why?
+note:if you search for a random route handler like /xyz you will get an invalid route error i.e cannot GET /xyz
+but when you use /hello or /test etc it will also handle random hanlders if you search for it like /xyz
+note: when you do app.use("/") and pass some route anything that matches after / will handle the route.
+but you will have to follow this pattern: /hello/123 but not /hello123 
+
+note:app.use("/",(req,res)=>
+{
+    res.send("hello milani !");
+});
+if you bring this code down and change the order of code and put /hello or /test on top and / route below then
+when you do /hello you will get hello hello and not hello milani because when you pass / hello hello is the first route handler that you will encouter with */
+so order of code matters
+Whenever our req is coming code runs from top and starts matching from top
+so order is very imp.
+-whenever you’re going to a website you’re basically making a GET API Call on our server. 
+-But you cannot make a post api call directly from your browser. You will have to write a code.
+-Browser is the worst way to test your apis your backend code.
+-API (Application Programming Interface) is like a waiter that helps two systems talk to each other, making sure you get the right information or service without needing to know how everything works behind the scenes.
+-If i make a get call to user it should give me the data of user.
+- if i make a post call to user and pass some data it should save the data to db
+- . use will match all the HTTP method API calls to /test
+- app.get("/user" , (req,res) =>{
+    res.send({firstName:"milani" , lastName:"nayak"});
+});
+this will only handle GET call to /user
+

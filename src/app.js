@@ -1,27 +1,29 @@
-const express = require('express');
-//instance of an express js application
-//creating web server
-//then listen code so everyone can connect
-//listen method will take a port
+const express = require("express");
 const app = express();
-//request handler
-//here whatever request comes to the server we are saying the below
 
-app.use("/",(req,res)=>
+//all the API calls will be handled by this route handler if the below is present
+//the below api route handlers will never get a chane
+  
+app.use("/user" , (req,res)=>{
+    res.send("hello");
+});
+app.get("/user" , (req,res) =>{
+    res.send({firstName:"milani" , lastName:"nayak"});
+});
+
+app.post("/user", (req,res)=>{
+    //saving data to db
+    res.send("data saved successfully to db");
+});//after above get call won't interfere will post call.
+
+app.delete("/user" , (req,res)=>{
+    res.send("user deleted successfully");
+});
+// . use will match all the HTTP method API calls to /test
+app.use("/test",(req,res)=>
 {
     res.send("hello milani !");
 });
-app.use("/test",(req,res)=>
-    {
-        res.send("hello from the server from test");
-    });
-app.use("/hello",(req,res)=>
-    {
-        res.send("hello hello");
-    });
-
-//how can we handle the server differently?
-
 app.listen(3000 , ()=>
 {
     console.log("server running");

@@ -6,3 +6,10 @@ create a server
 listen to port 7777
 write request handlers for /test , /hello
 install nodemon and update scripts inside package.json
+
+- initialise git
+- diff bw package.json or package-lock.json
+- should you add package-lock.json to github or not
+- create a remote repo on github
+- push all code to remote origin
+- play with routes and route extensions /hello , / , hello/2 , /xyz
