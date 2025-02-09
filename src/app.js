@@ -3,11 +3,21 @@ const app = express();
 
 //all the API calls will be handled by this route handler if the below is present
 //the below api route handlers will never get a chane
-  
-app.use("/user" , (req,res)=>{
-    res.send("hello");
-});
+//if a req comes and it takes /user
+// app.use("/user" , (req,res)=>{
+//     res.send("hello");
+// });
+// will work for both abc and ac
+//ab+c means abbc abbbc etc will work
+//ab*cd means abhsdhcd will work.
+// a(bc)?d means bc is optional
+//a(bc)+d means abcbbcbcd will work
+//app.get(/a/ , (req,res)=>{
+    //}) here regex expressions like /a/ will work if the req has any a it will work
+    /*e.g: /.*fly$/ */
+
 app.get("/user" , (req,res) =>{
+    console.log(req.query);
     res.send({firstName:"milani" , lastName:"nayak"});
 });
 

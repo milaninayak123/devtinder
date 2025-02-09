@@ -27,3 +27,24 @@ so order is very imp.
 });
 this will only handle GET call to /user
 
+-- app.get("/user",(req,res)=>{
+    //the below code will give you the info of query parameters.
+    console.log(req.query);
+    res.send({firstname:"milani"});
+})
+
+-- note: http://localhost:3000/user/707
+can be handled by 
+app.get("/user/:userId",(req,res)=>{
+    console.log(req.params);
+    res.send({firstname: "milani"});
+}); 
+-- you can even have complex route
+e.g: http://localhost:3000/user/707/xyz
+can be handled by :
+app.get("/user/:userId/:name/:password",(req,res)=>{
+    console.log(req.params);
+    res.send({firstname: "milani"});
+}); 
+## note: the aboves are dynamic routes and : represents that.
+so all the above parameters like name pw etc are in req.params.

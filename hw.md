@@ -13,3 +13,7 @@ install nodemon and update scripts inside package.json
 - create a remote repo on github
 - push all code to remote origin
 - play with routes and route extensions /hello , / , hello/2 , /xyz
+- explore routing , use of ? , + , () , * in routes
+-use of regex in routes: /a/ /.*fly$/
+- reading query params in the routes
+- reading the dynamic routes
