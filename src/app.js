@@ -1,40 +1,26 @@
 const express = require("express");
 const app = express();
-
-//all the API calls will be handled by this route handler if the below is present
-//the below api route handlers will never get a chane
-//if a req comes and it takes /user
-// app.use("/user" , (req,res)=>{
-//     res.send("hello");
-// });
-// will work for both abc and ac
-//ab+c means abbc abbbc etc will work
-//ab*cd means abhsdhcd will work.
-// a(bc)?d means bc is optional
-//a(bc)+d means abcbbcbcd will work
-//app.get(/a/ , (req,res)=>{
-    //}) here regex expressions like /a/ will work if the req has any a it will work
-    /*e.g: /.*fly$/ */
-
-app.get("/user" , (req,res) =>{
-    console.log(req.query);
-    res.send({firstName:"milani" , lastName:"nayak"});
+const {adminauth , userauth} = require("./middlewares/auth");
+//middlewares are written using app.use because you want your middlewares to work for get post delete all requests.
+//we want to write middleware for all requests coming to /admin
+//handle auth middleware for all requests
+//if you want only for get do app.get else app.use will handle allrequests 
+app.use("/admin",adminauth);
+app.post("/user/login", (req,res)=>{
+    res.send("user logged in successfully");
 });
-
-app.post("/user", (req,res)=>{
-    //saving data to db
-    res.send("data saved successfully to db");
-});//after above get call won't interfere will post call.
-
-app.delete("/user" , (req,res)=>{
-    res.send("user deleted successfully");
+app.get("/admin/getAllData", userauth,(req,res)=>{
+    res.send("all data sent");
+})
+app.get("/user" ,(req,res)=>{
+    res.send("user's data sent");
 });
-// . use will match all the HTTP method API calls to /test
-app.use("/test",(req,res)=>
-{
-    res.send("hello milani !");
-});
+app.get("/admin/deleteuser",(req,res)=>{
+    //when you have multiple apis you will have to write the logic of checking if user is admin or not again and again
+
+    res.send("deleted an user");
+})
 app.listen(3000 , ()=>
 {
-    console.log("server running");
+    console.log("server running in port 3000");
 });

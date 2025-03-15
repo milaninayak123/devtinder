@@ -17,3 +17,8 @@ install nodemon and update scripts inside package.json
 -use of regex in routes: /a/ /.*fly$/
 - reading query params in the routes
 - reading the dynamic routes
+diff bw app.use and app.all
+write a dummy auth middleware for admin
+write a dummy auth middleware for all user routes , except /user/login
+
+

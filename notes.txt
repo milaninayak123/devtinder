@@ -48,3 +48,277 @@ app.get("/user/:userId/:name/:password",(req,res)=>{
 }); 
 ## note: the aboves are dynamic routes and : represents that.
 so all the above parameters like name pw etc are in req.params.
+
+----------------------------------------------
+episode 4: routing and request handlers summary:
+-----------------------------------------------
+//all the API calls will be handled by this route handler if the below is present
+//the below api route handlers will never get a chane
+//if a req comes and it takes /user
+// app.use("/user" , (req,res)=>{
+//     res.send("hello");
+// });
+// will work for both abc and ac
+//ab+c means abbc abbbc etc will work
+//ab*cd means abhsdhcd will work.
+// a(bc)?d means bc is optional
+//a(bc)+d means abcbbcbcd will work
+//app.get(/a/ , (req,res)=>{
+    //}) here regex expressions like /a/ will work if the req has any a it will work
+    /*e.g: /.*fly$/ */
+
+app.get("/user" , (req,res) =>{
+    console.log(req.query);
+    res.send({firstName:"milani" , lastName:"nayak"});
+});
+
+app.post("/user", (req,res)=>{
+    //saving data to db
+    res.send("data saved successfully to db");
+});//after above get call won't interfere with post call.
+
+app.delete("/user" , (req,res)=>{
+    res.send("user deleted successfully");
+});
+-- so app.use can handle any type of method be it get post delete
+
+//http://localhost:3000/user?userId-101&password=testing
+// below is how you handle query parameters
+app.get("/user" , (req,res)=>{
+    console.log(req.query);
+})
+
+//how to handle dynamic apis
+app.get("/user/:userId",(req,res)=>{
+    console.log(req.params);
+});
+//The :userId in /user/:userId is a placeholder for dynamic values.
+If you visit http://localhost:3000/user/101, it will capture 101 as req.params.userId.
+When to Use Dynamic Routes?
+Fetching user profiles: /user/:userId
+Viewing a product: /product/:productId
+Accessing a blog post: /blog/:postSlug
+//above will handle http://localhost:3000/user/707
+note:
+with app.use("/user" , (req,res)=>{
+    res.send("route handler 1");
+});
+with app.use you can handle any type of method
+
+when you do: app.use("/user" , (req,res)=>{
+    //res.send("route handler 1");
+});
+we comment out above and dont send anything what happens?
+when a browser makes an api call to this it goes to an infinite loop 
+because we are not sending anything and after some time timeout will happen
+and nothing will be responded.
+so you always need to send the response back. else your api call goes to an infinite loop.
+--- 
+one route can have multiple route handlers.
+app.use("/user", (req,res)=>{
+    res.send("hello from the server. itz response1");
+},
+(req,res)=>{
+    console.log("handling the route user1");
+    res.send("response2");
+});
+note: above we've 2 request handlers. when an api call is hit the first route handler will be called.
+but suppose we comment out the first response , and hit an api call , what will happen?
+-it will go into an infinite loop
+-it will not go to the second request handler
+
+app.use("/user", (req,res,next)=>{
+    //res.send("hello from the server. itz response1");
+    next();
+},
+(req,res)=>{
+    console.log("handling the route user1");
+    res.send("response2");
+},
+(req,res)=>{
+    console.log("handling the route user1");
+    res.send("response3");
+}
+);
+---- now when we hit an api call next func will be called and the second response will be sent.
+next function given by expressjs
+this func means go to the next route handler
+
+---what if you remove the comment of first responsenow you have 2 responses ready to be sent
+first response will be sent
+next function will also be execute
+console.log of second route handler will also be printed
+but an error will be thrown when our code will try to send another response
+but like js works line by line all code will be executed
+error bc we cnnot sent handlers after they're sent
+
+now next() is written first and then 1st response od written what response will be sent to browser?
+2nd response will be sent but will get an error when 1st response is called.
+
+
+
+app.get("/user",(req,res)=>{
+    res.send({firstName:"Milani", lastName:"Nayak"});
+}
+(req,res)=>{
+    res.send("route handler 2");
+}
+); 
+
+the functions above that we have put in the middle are known as middlewares.
+how an express js app works?
+//a get req to /users.
+as soon as it comes it will go though the chain of middlewares and handle the response
+it will check if the method(here get) and route (/users) is matching somewhere
+
+job of express js server is to check the methods if it finds a match it will use the response of that func and will stop.
+these functions are called middlewares in express.js
+job of express js is go through the middlewares and find a response for the user request
+
+note:A route handler does not call next() because it sends the final response
+// Middleware 1: Logs request
+app.use((req, res, next) => {
+    console.log("🛑 Middleware 1: Logging request");
+    next();
+});
+
+// Middleware 2: Checks for authentication (dummy example)
+app.use((req, res, next) => {
+    console.log("🔒 Middleware 2: Checking authentication");
+    const isAuthenticated = true; // Change to false to see what happens
+    if (!isAuthenticated) {
+        return res.status(403).send("Access Denied");
+    }
+    next();
+});
+
+// Route Handler
+app.get("/dashboard", (req, res) => {
+    console.log("✅ Route Handler: Sending dashboard response...");
+    res.send("Welcome to your dashboard!");
+});
+Middleware (app.use): Pre-processes request (logs, modifies, authenticates)
+e.g:Logging, authentication, validation
+Route Handler (app.get):Sends final response to client
+e.g: Handling API requests
+
+how express js handles requests bts?
+it goes through the chain one by one and finds a response and give it back to client
+use of middlewares?
+suppose you've a route app.get()
+
+AUTHORIZED :
+
+app.get("/admin/getAllData" ,(req,res)=>{
+    //check if teh req is authrozied i.e the user is actually an admin or not
+    //logic
+    const token ="xyddz";
+    const isAdminAuthorized = token == "xyz"
+    if(isAdminAuthorized){
+        //by default status 200
+        res.send("all data sent");
+    }
+    else{
+        //401 code is for unauthorized user 
+        res.status(401).send("admin not unauthorized")
+    }
+});
+app.get("/admin/deleteuser",(req,res)=>{
+    //when you have multiple apis you will have to write the logic of checking if user is admin or not again and again
+
+    res.send("deleted an user");
+})
+AFTER USING MIDDLEWARE:
+app.use("/admin",(req,res,next)=>{
+    console.log("admin is getting authorized");
+    const token ="xyz";
+    const isAdminAuthorized = token == "xyz";
+    if(!isAdminAuthorized){
+        res.status(401).send("unauthorzed request");
+    }
+    else{
+        next();
+    }
+})
+app.get("/admin/getAllData" ,(req,res)=>{
+    res.send("all data sent");
+});
+why middlewares come into use?
+because they help in handling multiple requests at a time
+it helps in handling authentication type stuff for a route and it will authorize for just that route e.g /admin
+Middleware helps in:
+
+✅ Handling multiple requests efficiently by processing them before they reach the route handler.
+✅ Authentication & Authorization by verifying users before allowing access to specific routes (e.g., /admin).
+✅ Modifying requests (e.g., logging, data validation) before sending a response.
+🔹 Example: A middleware can check if a user is an admin before allowing access to /admin, blocking unauthorized users. 🚀
+
+auth.js : to check authentication of /user /admin
+for clean code we write all these in a middleware folder inside that in auth.js
+const adminauth =(req,res,next)=>{
+    console.log("admin is getting authorized");
+    const token ="xyz";
+    const isAdminAuthorized = token == "xyz";
+    if(!isAdminAuthorized){
+        res.status(401).send("unauthorized admin request");
+    }
+    else{
+        next();
+    }
+};
+const userauth =(req,res,next)=>{
+    console.log("user is getting authorized");
+    const token ="xyzer";
+    const isuserauthorized = token == "xyz";
+    if(!isuserauthorized){
+        res.status(401).send("unauthorized user request");
+    }
+    else{
+        next();
+    }
+};
+module.exports = {
+    adminauth,
+    userauth,
+};
+how will we use this in app.js?
+const app = express();
+const {adminauth , userauth} = require("./middlewares/auth");
+//middlewares are written using app.use because you want your middlewares to work for get post delete all requests.
+//we want to write middleware for all requests coming to /admin
+//handle auth middleware for all requests
+//if you want only for get do app.get else app.use will handle allrequests 
+app.use("/admin",adminauth);
+app.use("/user",userauth);
+//above can also be written as app.get("/user" , userauth , (req,res)=>{
+// so when a /user req will come first it will go to niddleware userauth and authenticate user if passed then only next() func will be called and will go to route handler else from there only send that not authenticated
+
+
+app.get("/user" ,(req,res)=>{
+    res.send("user's data sent");
+});
+app.get("/admin/getAllData",(req,res)=>{
+    res.send("all data sent");
+})
+app.get("/admin/deleteuser",(req,res)=>{
+    //when you have multiple apis you will have to write the logic of checking if user is admin or not again and again
+
+    res.send("deleted an user");
+})
+app.listen(3000 , ()=>
+{
+    console.log("server running in port 3000");
+});
+
+2 ways OF IMPORTING MIDDLEWARE CODE TO app.js
+in the below way we are deciding for what kind of api call we need to authorize the user
+for getting data , user authentication is required
+for logging in we dont because it should be open for all
+but once logged in we need to authorize them
+
+app.post("/user/login", (req,res)=>{
+    res.send("user logged in successfully");
+});
+app.get("/admin/getAllData", userauth,(req,res)=>{
+    res.send("all data sent");
+})
