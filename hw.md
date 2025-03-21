@@ -20,5 +20,11 @@ install nodemon and update scripts inside package.json
 diff bw app.use and app.all
 write a dummy auth middleware for admin
 write a dummy auth middleware for all user routes , except /user/login
-
+error handling using app.use which is a wildcard-way of error handling wo using try catch
+--connect your application to database "connection-url"/devtinder
+--call connectdb func and connect to db before starting app on 7777
+--create user schema and user model
+--create a POST/signup API to add data to db
+--push some documents using api calls from postman
+---------
 

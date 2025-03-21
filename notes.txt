@@ -322,3 +322,203 @@ app.post("/user/login", (req,res)=>{
 app.get("/admin/getAllData", userauth,(req,res)=>{
     res.send("all data sent");
 })
+
+ERROR Handling
+//below is a way to handle errors and the order of writing error, req etc matters
+//order : req , res | req,res,next | error , req , res , next
+//below is also known as middleware
+app.use("/",(error,req,res,next)=>{
+    //handle error
+    if(error){
+    res.status(500).send("Something went wrong");
+}});
+
+//how to handle error for individal route handlers?
+app.get("/getuserdata" ,(req,res)=>{
+    try{
+        //logic of db call and get user data
+        throw new Error("jjwc");
+        res.send("user data sent");
+    }catch(err){
+res.status(500).send("error");
+    }
+});
+
+//order matters
+.use is called first 
+then .get. 
+EPISODE 6: DATABASE , SCHEMAS AND MODELS MONGOOSE
+1st thibg: connect our application to the DATABASE
+we want our application to connect to the cluster we created
+
+user.js:
+const mongoose = require('mongoose');
+const userSchema = new mongoose.Schema({
+    first_name: {
+        type:string
+    },
+    emailId:{
+        type:string
+    },
+    password:{
+        type:string
+    },
+    age:{
+        type:Number
+    }
+
+
+});
+//above is the schema i.e the definition of the model
+//below model will create its own instances
+const userModel = mongoose.model("User",userSchema);
+module.exports = userModel;
+
+//create a database,then collections like user
+
+you can also write like this: 
+-----------------
+CREATE API
+app.post("/signup",(req,res)=>{
+    const UserObj ={
+        firstName : "Milani",
+        lastName:"Nayak",
+        email:"milaninayak123@gmail.com",
+        password:"milaninayak123"
+    }
+    //create a new user with above data
+    //creating new instance of User Model
+    const user = new User(UserObj);
+    user.save();
+});
+this is one way of creating new instances of user model
+
+way2:
+syntax:
+const user = new ModelName({
+    fname:"jd",
+    ld,
+});
+user.save();
+
+/////////////ASYNC AWAIT
+//////POST A USER DATA SYNTAX 
+//CREATED AN API STORING DUMMY DATA TO DB
+app.post("/signup",async(req,res)=>{
+    const user = new User({
+        firstName : "Milani",
+        lastName:"Nayak",
+        email:"milaninayak123@gmail.com",
+        password:"milaninayak123"
+    });
+    //create a new user with above data
+    //creating new instance of User Model
+    
+    await user.save();
+});
+\
+///CONNECT TO DB FIRST THEN START server
+const express = require("express");
+const connectDB= require("./config/database");
+const app = express();
+const User = require("./models/user");
+
+
+app.post("/signup",async(req,res)=>{
+    const user = new User({
+        firstName : "Milani",
+        lastName:"Nayak",
+        email:"milaninayak123@gmail.com",
+        password:"milaninayak123"
+    });
+    await user.save();
+    user.send("user added successfully");
+});
+connectDB()
+    .then(() => {
+    console.log("database connection established");
+    app.listen(7777,()=>{
+        console.log("server successfully listening on port 7777");
+    });
+})
+.catch((err)=>{
+    console.log("db cant be connected");
+});
+
+
+COORECT CODE FOR CONNECTING DATABASE , STARTING THE SERVER & POSTING
+APP.JS:
+const express = require("express");
+const connectDB= require("./config/database");
+const app = express();
+const User = require("./models/user");
+
+
+app.post("/signup",async(req,res)=>{
+    const user = new User({
+        firstName : "Milani",
+        lastName:"Nayak",
+        email:"milaninayak123@gmail.com",
+        password:"milaninayak123"
+    });
+    await user.save();
+    res.send("user added successfully");
+});
+connectDB()
+    .then(() => {
+    console.log("database connection established");
+    app.listen(7777,()=>{
+        console.log("server successfully listening on port 7777");
+    });
+})
+.catch((err)=>{
+    console.log("db cant be connected");
+});
+
+
+USER.JS:
+const mongoose = require("mongoose");
+const userSchema = new mongoose.Schema({
+    firstName: {
+        type:String,
+    },
+    emailId:{
+        type:String,
+    },
+    password:{
+        type:String,
+    },
+    age:{
+        type:Number,
+    },
+
+
+});
+//above is the schema i.e the definition of the model
+//below model will create its own instances
+//parameters for below: model name , schema name
+const userModel = mongoose.model("User",userSchema);
+module.exports=userModel;
+
+//create a database,then collections like user
+
+DATABASE.JS
+//will write the logic to connect to database
+//we will use an npm library mongoose
+//used to create schemas , talk to database etc
+const mongoose = require("mongoose");
+//wrap your connection inside an async function
+const connectDB = async()=>{
+    //connected to cluster. inside that cluster we will create a db named devtinder
+    await mongoose.connect("mongodb+srv://db:dbuserpw@devtinder.fbgj8.mongodb.net/?retryWrites=true&w=majority&appName=devtinder");
+};
+//call this function
+
+module.exports = connectDB;
+
+//in this file you have just created the function to connect to db 
+//db connection is done in app.js . here you are exporting your func
+//in app.js importing this func,using it first then starting the server
+NOTE: THE FIELD NAMES IN APP.JS SHOULD BE EXACTLY SAME AS YOU HAVE DECLARED IN USER.JS LIKE NAME AGE etc
+note: whenever doing any db operation like saving your data etc always wrap them inside try catch block.
+and handle your responses appropriately
