@@ -522,3 +522,52 @@ module.exports = connectDB;
 NOTE: THE FIELD NAMES IN APP.JS SHOULD BE EXACTLY SAME AS YOU HAVE DECLARED IN USER.JS LIKE NAME AGE etc
 note: whenever doing any db operation like saving your data etc always wrap them inside try catch block.
 and handle your responses appropriately
+
+SUMMARY: 
+create database.js:
+1. const mongoose = require("mongoose");
+const connectdb = async()=>{
+    await mongoose.connect = "";
+}
+write the func for connecting to mongoose
+in app.js:
+call that function which was created in database.js. then connect to server. 
+app.post("/signup",async(req,res)=>{
+    //created a new instance of the model User
+    const user= new User({
+        firstname ='milani',
+    });
+    try{
+        await user.save();
+        res.send("posted");
+    }catch(err){
+        res.status(400).send("user cant be added"+err.message);
+    }
+});
+connectDB.then(()=>{
+    console.log("db connected");
+    app.listen(7777,()=>{
+        console.log("server connected");
+    });
+});
+.catch((err)=>{
+    console.log("cant connect");
+})
+EPISODE 7: DIVING INTO apis
+currently our user is acceptingrequests in js but user is sending data is json
+so we will need a middleware to convert json to js
+so we will use app.use(express.json()) in app.js file
+
+
+POST DYNAMICALLY
+check app.js old one 
+instead of hard coding we will send data from postman in raw json format.
+in app.js we will handle it like this: app.post("/signup",async(req,res)=>{
+    const user = new User(req.body);
+    try{
+    await user.save();
+    res.send("user added successfully");
+}catch(err){
+    res.status(400).send("error saving the data"+ err.message);
+}
+}); replace hardcoded data with req.body

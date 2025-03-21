@@ -28,3 +28,7 @@ error handling using app.use which is a wildcard-way of error handling wo using 
 --push some documents using api calls from postman
 ---------
 
+more about apis:
+diff bw json and js
+add the express.js middleware to your app
+make your signup api dynamic to receive data from the end user
