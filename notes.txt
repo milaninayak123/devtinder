@@ -571,3 +571,169 @@ in app.js we will handle it like this: app.post("/signup",async(req,res)=>{
     res.status(400).send("error saving the data"+ err.message);
 }
 }); replace hardcoded data with req.body
+
+second part: get all data
+1. get just one user's data. can do that by email. 
+GET ONE USER INFO 
+app.get("/user",async(req,res)=>{
+    const useremail = req.body.email;
+    try{
+        const user= await User.find({email:useremail});
+        if(user.length===0){
+            res.status(401).send("user not found");
+        }
+    }catch(err){
+        res.status(400).send("something went wrong");
+    }
+});
+GET ALL USERS DATA
+/feed api - get /feed - get all the users from the db
+app.get("/feed",async(req,res)=>{
+    
+    try{
+        const user= await User.find({});
+        res.send(user);
+        
+    }catch(err){
+        res.status(400).send("something went wrong");
+    }
+});
+//.findOne is a func that will return only one document if there are multiple email ids with same email
+// GET AN USER USING iD 
+app.get("/id",async(req,res)=>{
+    const userId = req.body._id;
+    try{
+        const user = await User.findById({_id:userId});
+        if(user===0){
+            res.status(404).send("user not found");
+        }else{
+            res.send(user);
+        }
+    }catch(err){
+        res.status(400).send("something went wrong");
+    }
+});
+
+UPDATE API , DELETE API
+DELETE API TO DELTE A USER BY iD
+app.delete("/user",async(req,res)=>{
+    const userId = req.body.userId;
+    try{
+        const user = await User.findByIdAndDelete(userId);
+        res.send("user deleted successfully");
+        
+    }catch(err){
+        res.status(400).send("something went wrong");
+    }
+});
+
+UPDATE API 
+//update data of the user 
+app.patch("/user",async (req,res) =>{
+    const userId = req.body.userId;
+    const data = req.body;
+    try{
+       await User.findByIdAndUpdate({_id:userId},data);
+       res.send("user updated successfully");
+    }catch(err){
+        res.status(400).send("something went wrong");
+    }
+
+});
+
+below is how you will pass your req in body of postman:
+{
+   "userId": "67dd5b7449f46de50225e721",
+   //using above id we will update all below data
+   "firstName": "chubu",
+   "email":"chubu@gmail.com"
+}
+note: using update , any other data if you enter which is 
+not in the schema will be ignored by the db 
+OPTIONS: explore in mongodb document 
+
+Currently we arent doing any data sanitisations. any data is being stored in db.
+we want that every field should have a limit like name in 7 to 8 chars
+email must contain @ etc. this is called data sanitisation.
+
+and that is wat we will learn now in this episode. 
+episode 8:data sanitizations and schema validations 
+1. first we will add some strict checks into our user schema 
+if not met wont insert them in db 
+e.g: there must be some mandatory fields in our db 
+if not there we wont insert them to our db 
+like email pw name etc. required fields to signup 
+
+there are diff types of schemas and required is one of them
+how you can use it?
+const userSchema = new mongoose.Schema({
+    firstName: {
+        type:String,
+        required: true,
+    },
+})
+now user will have to give a firstName else mongoose will not allow the insertion into the database
+user.js: 
+const mongoose = require("mongoose");
+const userSchema = new mongoose.Schema({
+    firstName: {
+        type:String,
+        required: true,
+        minLength: 4,
+        maxLength: 50,
+    },
+    lastName:{
+        type:String,
+       
+    },
+    email:{
+        type:String,
+        lowercase:true,
+        required:true,
+        unique:true,
+        trim:true
+        
+    },
+    password:{
+        type:String,
+        required:true,
+    },
+    age:{
+        type:Number,
+        min:18,
+    },
+    gender:{
+        type:String,
+        //custom validation function
+        //below validation func will only run whenb  you're creating  a new user not with update
+        validate(value){
+            const validGenders = ["male", "female"];
+            if(!validGenders.includes(value.toLowerCase)){
+                throw new Error(  `🚨 Oops! "${value}" is not a valid gender. Try "male" or "female"—or take it up with the admin!`);
+        }
+    }
+    },
+    photoUrl:{
+        type:String,
+        default:"https://img.freepik.com/premium-vector/gray-avatar-icon-vector-illustration_276184-163.jpg",
+    },
+    about:{
+        type: String,
+        //if a user doesnt enter about this will be displayed in db
+        default: "this is a default value",
+    },
+    skills:{
+        type:[String],//array of skills
+    },
+});
+//above is the schema i.e the definition of the model
+//below model will create its own instances
+//parameters for below: model name , schema name
+const userModel = mongoose.model("User",userSchema);
+module.exports=userModel;
+
+//create a database,then collections like user
+FOR VALIDATION FUNC TO WORK WITH UPDATE METHOD WE HAVE TO EXPLICITLY IN THE UPDATE route handler specify the option as true.
+// explore schematypes 
+required , minLength,maxLength , trim , min , lowercase
+Improve the db schema , add timestamps , put all appropriate validations on each field in schema

@@ -32,3 +32,7 @@ more about apis:
 diff bw json and js
 add the express.js middleware to your app
 make your signup api dynamic to receive data from the end user
+api - get user by email
+api - feed api to get all users from the db
+api - get users by id
+--diff bw patch & put
