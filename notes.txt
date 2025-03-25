@@ -734,6 +734,50 @@ module.exports=userModel;
 
 //create a database,then collections like user
 FOR VALIDATION FUNC TO WORK WITH UPDATE METHOD WE HAVE TO EXPLICITLY IN THE UPDATE route handler specify the option as true.
-// explore schematypes 
-required , minLength,maxLength , trim , min , lowercase
-Improve the db schema , add timestamps , put all appropriate validations on each field in schema
+like this: 
+app.patch("/user",async (req,res) =>{
+    const userId = req.body.userId;
+    const data = req.body;
+    try{
+       const user = await User.findByIdAndUpdate({_id:userId},data,{
+        runValidators:true,
+
+       });
+       res.send("user updated successfully");
+    }catch(err){
+        res.status(400).send("update failed:" + err.message);
+    }
+
+});
+check user.js on how to add validators to each field in a schema like user to make it cleaner , secure
+NEXT LESSON:
+suppose you dont want users to update their email.
+how to do that?
+you want if user updating his profile he can only update certain fields of his profile
+by API LEVEL VALIDATION .
+app.patch("/user/:userId",async (req,res) =>{
+    const userId = req.params?.userId;
+    const data = req.body;
+
+    try{
+    const ALLOWED_UPDATES=[
+        "photo-url" , "about" , "gender" , "age" , "skills"
+    ]
+    //looping through every key like userid , name etc and check if present in allowed updates
+    const isUpdate_Allowed = Object.keys(data).every((k)=>
+        ALLOWED_UPDATES.includes(k)
+    );
+    if(!isUpdate_Allowed){
+       throw new Error("update not allowed");
+    }
+       const user = await User.findByIdAndUpdate({_id:userId},data,{
+        runValidators:true,
+
+       });
+       res.send("user updated successfully");
+    }catch(err){
+        res.status(400).send("something went wrong:" + err.message);
+    }
+
+});
+data sanitization: add api validation for each field before sedning to db

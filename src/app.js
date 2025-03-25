@@ -68,17 +68,28 @@ app.delete("/user",async(req,res)=>{
 });
 //imp3
 //update data of the user 
-app.patch("/user",async (req,res) =>{
-    const userId = req.body.userId;
+app.patch("/user/:userId",async (req,res) =>{
+    const userId = req.params?.userId;
     const data = req.body;
+
     try{
+    const ALLOWED_UPDATES=[
+        "photo-url" , "about" , "gender" , "age" , "skills"
+    ]
+    //looping through every key like userid , name etc and check if present in allowed updates
+    const isUpdate_Allowed = Object.keys(data).every((k)=>
+        ALLOWED_UPDATES.includes(k)
+    );
+    if(!isUpdate_Allowed){
+       throw new Error("update not allowed");
+    }
        const user = await User.findByIdAndUpdate({_id:userId},data,{
         runValidators:true,
 
        });
        res.send("user updated successfully");
     }catch(err){
-        res.status(400).send("update failed:" + err.message);
+        res.status(400).send("something went wrong:" + err.message);
     }
 
 });

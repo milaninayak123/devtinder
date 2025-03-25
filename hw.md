@@ -36,3 +36,7 @@ api - get user by email
 api - feed api to get all users from the db
 api - get users by id
 --diff bw patch & put
+// explore schematypes 
+required , minLength,maxLength , trim , min , lowercase
+Improve the db schema , add timestamps , put all appropriate validations on each field in schema
+// create a validator that will limit the users to add a few skills

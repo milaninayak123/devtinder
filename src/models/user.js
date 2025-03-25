@@ -70,6 +70,12 @@ const userSchema = new mongoose.Schema({
     },
     skills:{
         type:[String],//array of skills
+        validate:{
+            validator: function(value){
+                return value.length<7;
+            },
+        message: "you can add upto 6 skills only" 
+        }
     },
    
 
