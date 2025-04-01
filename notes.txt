@@ -1233,3 +1233,93 @@ this is how you do it:
 res.cookie("token",token , {
                 expires: new Date(Date.now() + 8 *3600000),
             });
+
+WHAT IS MONGOOSE SCHEMA METHODS?
+e.g userschema we have. it defines the user
+we can attach few methods onto the schema that is applicable to all the users.
+what are these methods?
+helper methods closely related to user. 
+e.g: while logging in an user , we are creating a jwt token and secretly inserting userid in it. 
+that method is very closely related to user.
+every user will have a diff way of signing. 
+so thats why we can offload such functions to userSchema
+ const token = await jwt.sign({_id:user._id},"DEV@Tinder$3498",{expiresIn:"7D" });
+the above function of writing jwt token can be offloaded to a hanlder method i.e userschema
+so we will declare the jwt in user.js.
+userSchema.methods.getJWT =async function () {
+    const user = this;
+    const token = await jwt.sign({_id:user._id},"DEV@Tinder$3498",{
+        expiresIn:"7D" 
+    });
+    return token;
+}
+we will not use arrow functio here since we are using this. 
+this fucntion dosnt work in arrow func
+
+this refers to one particular instance of a user model.
+app.post("/login", async(req,res)=>{
+    try{
+        const {email , password } = req.body;
+        const user = await User.findOne({email:email});
+        if(!user){
+            throw new Error("Invalid credentials");
+        }
+        const isPasswordValid = await bcrypt.compare(password , user.password);
+        if(isPasswordValid){
+            //whatever the urrent user is the user token will come back
+            const token = await user.getJWT();
+            res.cookie("token",token , {
+                expires: new Date(Date.now() + 8 *3600000),
+            });
+            res.send("User login successful");
+        }
+        else{
+            throw new Error("Invalid credentials");
+        }
+    }catch(err){
+        res.status(400).send("ERROR: "+ err.message);
+    }
+});
+much cleaner login api.
+## so writing these helper functions separately in a handler method like user schema we can always reuse it for other apis if needed other than login api
+makes our code readable
+## we can also offload our bcrypt function (to validate the pw)
+code after doing the above:
+app.post("/login", async(req,res)=>{
+    try{
+        const {email , password } = req.body;
+        const user = await User.findOne({email:email});
+        if(!user){
+            throw new Error("Invalid credentials");
+        }
+        //below arg is the pw sent by user. passing it in a func declared in user.js
+    
+        const isPasswordValid = await user.validatePassword(password);
+        if(isPasswordValid){
+            //whatever the urrent user is the user token will come back
+            const token = await user.getJWT();
+            res.cookie("token",token , {
+                expires: new Date(Date.now() + 8 *3600000),
+            });
+            res.send("User login successful");
+        }
+        else{
+            throw new Error("Invalid credentials");
+        }
+    }catch(err){
+        res.status(400).send("ERROR: "+ err.message);
+    }
+});
+user.js:
+userSchema.methods.validatePassword = async function(passwordInputByUser){
+    const user = this;
+    const passwordHash= user.password;
+    //1st parameter is the pw that user entered , 2ns is the actual pw of user
+    const isPasswordValid = await bcrypt.compare(
+        passwordInputByUser, 
+        passwordHash
+    );
+    return isPasswordValid;
+}
+the above is a schema method
+end of video. this was s2e10 video. (imp one for jwt etc)

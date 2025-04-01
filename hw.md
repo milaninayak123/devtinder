@@ -51,4 +51,11 @@ create get/profile api and check if you get the cookie back
 install jsonwebtoken
 in login api after email and pw validation , create a jwt token and send it to user
 -read the cookies inside your profile api and find the logged in user
+--write userauth middleware and add it in profile api
+-- add a new Sendconnetionreq api
+-- set the expiry of JWT tpken and cookies to 7 days
+example of never expiring the cookie?
+suppose you went to a cyber cafe and logged in and forgot to log out. your acc will always be there. 
 
+--create user schema method to get jwt token
+--create to comapre compare pws and take a pw input

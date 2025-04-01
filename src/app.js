@@ -43,16 +43,12 @@ app.post("/login", async(req,res)=>{
         if(!user){
             throw new Error("Invalid credentials");
         }
-        const isPasswordValid = await bcrypt.compare(password , user.password);
+        //below arg is the pw sent by user. passing it in a func declared in user.js
+    
+        const isPasswordValid = await user.validatePassword(password);
         if(isPasswordValid){
-            //create a jwt token
-            //we will hide the user id inside token i.e the first param , second param is a secret key that only developer knows
-            //not the user or anyone
-            const token = await jwt.sign({_id:user._id},"DEV@Tinder$3498",{expiresIn:"7D" });
-           
-            //store it in cookie
-            //send the response back to user
-            
+            //whatever the urrent user is the user token will come back
+            const token = await user.getJWT();
             res.cookie("token",token , {
                 expires: new Date(Date.now() + 8 *3600000),
             });
