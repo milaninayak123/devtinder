@@ -2,96 +2,86 @@ const express = require("express");
 const connectDB= require("./config/database");
 const app = express();
 const User = require("./models/user");
+const {validateSignupData} = require('./utils/validation');
+const bcrypt = require("bcrypt");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
+const {userAuth} = require("./middlewares/auth");
 
 app.use(express.json());
+//middleware    
+app.use(cookieParser());
 //imp1
 app.post("/signup",async(req,res)=>{
-    //new instance of model
-    const user = new User(req.body);
     try{
+    //validation of data
+    validateSignupData(req);
+    //extract below fields from req.body
+    const {firstName,lastName,email,password} = req.body;
+    //encrypt the pw. second arg is salt
+    const passwordHash = await bcrypt.hash(password , 10);
+    //new instance of model
+    //only below fields are allowed
+    const user = new User({
+        firstName,
+        lastName,
+        email,
+        password:passwordHash,
+    });
+
+  
     await user.save();
     res.send("user added successfully");
 }catch(err){
-    res.status(400).send("error saving the data"+ err.message);
+    res.status(400).send("ERROR: "+ err.message);
 }
 });
-//get user by email
-app.get("/user",async(req,res)=>{
-    const useremail = req.body.email;
+app.post("/login", async(req,res)=>{
     try{
-        const user= await User.find({email:useremail});
-        if(user===0){
-            res.status(404).send("user not found");
-        }else{
-            res.send(user);
+        const {email , password } = req.body;
+        const user = await User.findOne({email:email});
+        if(!user){
+            throw new Error("Invalid credentials");
+        }
+        const isPasswordValid = await bcrypt.compare(password , user.password);
+        if(isPasswordValid){
+            //create a jwt token
+            //we will hide the user id inside token i.e the first param , second param is a secret key that only developer knows
+            //not the user or anyone
+            const token = await jwt.sign({_id:user._id},"DEV@Tinder$3498",{expiresIn:"7D" });
+           
+            //store it in cookie
+            //send the response back to user
+            
+            res.cookie("token",token , {
+                expires: new Date(Date.now() + 8 *3600000),
+            });
+            res.send("User login successful");
+        }
+        else{
+            throw new Error("Invalid credentials");
         }
     }catch(err){
-        res.status(400).send("something went wrong");
+        res.status(400).send("ERROR: "+ err.message);
     }
 });
-//feed api - get /feed - get all the users from the db
-app.get("/feed",async(req,res)=>{
-    
-    try{
-        const user= await User.find({});
-        res.send(user);
-        
-    }catch(err){
-        res.status(400).send("something went wrong");
-    }
-});
-//GET user by id
-app.get("/id",async(req,res)=>{
-    const userId = req.body._id;
-    try{
-        const user = await User.findById({_id:userId});
-        if(user===0){
-            res.status(404).send("user not found");
-        }else{
-            res.send(user);
-        }
-    }catch(err){
-        res.status(400).send("something went wrong");
-    }
-});
-//delete one user by id
-//imp2
-app.delete("/user",async(req,res)=>{
-    const userId = req.body.userId;
-    try{
-        const user = await User.findByIdAndDelete(userId);
-        res.send("user deleted successfully");
-        
-    }catch(err){
-        res.status(400).send("something went wrong");
-    }
-});
-//imp3
-//update data of the user 
-app.patch("/user/:userId",async (req,res) =>{
-    const userId = req.params?.userId;
-    const data = req.body;
+//get profile
+app.get("/profile", userAuth,async(req,res)=>{
+    try{      
+    const user = req.user;
+    res.send(user);
 
+} catch(err){
+    res.status(400).send("error: "+ err.e)
+}});
+//api to send connection req
+app.post("/sendConnectionRequest", userAuth, async(req,res)=>{
     try{
-    const ALLOWED_UPDATES=[
-        "photo-url" , "about" , "gender" , "age" , "skills"
-    ]
-    //looping through every key like userid , name etc and check if present in allowed updates
-    const isUpdate_Allowed = Object.keys(data).every((k)=>
-        ALLOWED_UPDATES.includes(k)
-    );
-    if(!isUpdate_Allowed){
-       throw new Error("update not allowed");
-    }
-       const user = await User.findByIdAndUpdate({_id:userId},data,{
-        runValidators:true,
-
-       });
-       res.send("user updated successfully");
+        const user = req.user;
+        res.send(user.firstName+ " "+user.lastName +" requested to connect with you");
     }catch(err){
-        res.status(400).send("something went wrong:" + err.message);
+        res.send("Error: "+err.message);
     }
-
 });
 connectDB()
     .then(() => {

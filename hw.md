@@ -40,3 +40,15 @@ api - get users by id
 required , minLength,maxLength , trim , min , lowercase
 Improve the db schema , add timestamps , put all appropriate validations on each field in schema
 // create a validator that will limit the users to add a few skills
+
+
+validate data in signup api by creating helper functions
+create pw hash usinf bcrypt.hash save user with encrytpted pw 
+compare pws and throw errors if email or pw invalid
+install cookie-parse
+just send a dummy cookie to user
+create get/profile api and check if you get the cookie back
+install jsonwebtoken
+in login api after email and pw validation , create a jwt token and send it to user
+-read the cookies inside your profile api and find the logged in user
+

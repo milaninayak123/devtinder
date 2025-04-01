@@ -781,3 +781,455 @@ app.patch("/user/:userId",async (req,res) =>{
 
 });
 data sanitization: add api validation for each field before sedning to db
+its hard to write validators. so you can take help of external library called npm validator.
+so we will use VALIDATOR LIBRARY.
+E.G:
+email:{
+        type:String,
+        lowercase:true,
+        required:true,
+        unique:true,
+        trim:true,
+        validate(value){
+            if(!validator.isEmail(value)){
+                throw new Error("Invalid error address: " + value);
+            }
+        },
+
+    },
+    password:{
+        type:String,
+        required:true,
+        validate(value){
+            if(!validator.isStrongPassword(value)){
+                throw new Error("Not a strong pw. Try again!");
+            }
+        },
+        
+    },
+    SEASON 2 EP9 -ENCRYPTING passwordS
+    pw should be stored in a hashed format 
+    encrypted format 
+    our signup api is itself not safe 
+    app.post("/signup",async(req,res)=>{
+    //new instance of model
+    const user = new User(req.body);
+    try{
+    await user.save();
+    res.send("user added successfully");
+}catch(err){
+    res.status(400).send("error saving the data"+ err.message);
+}
+});
+as soon as a user hits the signup api the first thing to be done is validate the data
+if data is not correct then throw an error and dont let user create an account
+then if validated hash the pws 
+then save it 
+sometimes we create utility/helper fucntions to validate our data 
+create a folder utils in src folder.
+here you will write all kind of validations in this file
+
+in validation.js you can write all your validations.
+
+const validator = require('validator');
+const validateSignupData = (req)=>{
+    //from the req.body extract all the fields. do js axtraction. then validate the field one by one
+    const {firstName , lastName , email , password} = req.body;
+    if(!firstName || !lastName){
+        throw new Error("Name not valid");
+    }
+    else if(!validator.isEmail(email)){
+        throw new Error("EMail is not valid");
+    }
+    else if(!validator.isStrongPassword(password)){
+        throw new Error("Not a strong password. Try again !");
+    }
+    else if(!validator.isURL(photoUrl)){
+        throw new Error("Not a valid img link");
+    }
+};
+then export it.
+import it in app.js and call it in signup post api call. 
+always wrap inside try catch block 
+app.post("/signup",async(req,res)=>{
+    try{
+    //validation of data
+    validateSignupData(req);
+    //new instance of model
+    const user = new User(req.body);
+  
+    await user.save();
+    res.send("user added successfully");
+}catch(err){
+    res.status(400).send("ERROR: "+ err.message);
+}
+});
+
+NOW ENCRYPT YOUR PW USING A NPM PACKAGE BCRYPT 
+second arg in hash func is no of rounds of salts 
+how many no of rounds that salt should be applied to create a pw
+more encryption level , harder to decrypt. 
+salt =1 0 standard
+
+HOW TO WRITE CORRECT POST API FUNCTION? (SIGNUP API)
+app.post("/signup",async(req,res)=>{
+    try{
+    //validation of data
+    validateSignupData(req);
+    //extract below fields
+    const {firstName,lastName,email,password} = req.body;
+    //encrypt the pw. second arg is salt
+    const passwordHash = await bcrypt.hash(password , 10);
+    console.log(passwordHash);
+    //new instance of model
+    //only below fields are allowed
+    const user = new User({
+        firstName,
+        lastName,
+        email,
+        password:passwordHash,
+    });
+
+  
+    await user.save();
+    res.send("user added successfully");
+}catch(err){
+    res.status(400).send("ERROR: "+ err.message);
+}
+});
+STEPS:
+NEVER TRUST REQ.BODY. WHATEVER IS COMING IN THERE.
+YOU ONLY ACCEPT THE FIELDS WHICH YOU WANT 
+1. VALIDATING. FOR THAT IMPORT VALIDATION FUNC WRITTEN IN VALIDATION.JS 
+2. EXTRACT FIELDS WHICH YOU WANT USER TO INPUT LIKE NAME etc
+3. CREATE HASH PASSWORD
+4. STORE HASH PW
+
+LOGIN API 
+check email , pw
+first check if a user with that email exists or not 
+if yes then check pw
+LOGIN API:
+app.post("/login", async(req,res)=>{
+    try{
+        const {email , password } = req.body;
+        const user = await User.findOne({email:email});
+        if(!user){
+            throw new Error("Email id doesn't exist");
+        }
+        const isPasswordValid = await bcrypt.compare(password , user.password);
+        if(isPasswordValid){
+            res.send("User login successful");
+        }
+        else{
+            throw new Error("Password not valid");
+        }
+    }catch(err){
+        res.status(400).send("something went wrong "+ err.message);
+    }
+});
+
+note: never expose the reason of failure
+always say Invalid credentials.
+attacker shouldnt know why he couldnt login 
+EPISODE 10 - AUTHENTICATION, COOKIES , JWT TOKENS(ADVANCED LEVEL OF AUTHENTICATION)
+we will be creating a token putting token into cookie 
+sending it to user
+now user has cookies 
+whenever a req is made to the server a cookie will be sent 
+and you'll validate if user is authentic or not 
+SCENARIO: i am a user. i want to access my profile info. i cant access it unless i login. all these things need authentication
+user is requesting a website or hitting a server api call. user will make a connection request. 
+-if user wants to communicate with server it will have to create a connection using tcp. after getting response it will close the connection.
+so an user requests. made the api call. send the response back. close connection. 
+everytime user makes an api call , it needs to be authenticated. user should be logged in.
+--- a user comes.makes a login request. server says email pw correct. then gives you json web token to user. it is stored with user.
+with all the requests after login jwt will be sent. and everytime server will validate if tokem is correct or not. 
+e.g: everytime you are opening linkedin , liking somone's post etc , everytime this token is sent to server and server everytime validates the token if crrect or not.
+how will user store the token? 
+cookies. 
+when login to application it will validate if valid email and pw , if yes then server will send successful login along with that 
+will create a jwt token and will add this inside a cookie. cookie will stored in the browser.
+in ressponse back to user it will give the cookie. 
+when a user makes a request or api call cookie will travel , validated then sent back along with response to user.
+when will cookie not work? when cookie expires after a time limit and you are making a request using that cookie which is now old.
+so wont work, will fail the validation. 
+will have to login again.
+
+app.post("/login", async(req,res)=>{
+    try{
+        const {email , password } = req.body;
+        const user = await User.findOne({email:email});
+        if(!user){
+            throw new Error("Invalid credentials");
+        }
+        const isPasswordValid = await bcrypt.compare(password , user.password);
+        if(isPasswordValid){
+            //create a jwt token
+            //store it in cookie
+            //send the response back to user
+            res.cookie("token","dededwed");
+            res.send("User login successful");
+        }
+        else{
+            throw new Error("Invalid credentials");
+        }
+    }catch(err){
+        res.status(400).send("ERROR: "+ err.message);
+    }
+});
+here we are creating our cookie and storing it.
+
+now you want to get the profile or check your profile. so you will have to hit the get call to profile 
+now for you to be able to read token in profile you need another library , a middleware to read our hwt token. cookie parser
+so whenever a req comes , cookies will be parsed. 
+JWT TOKEN: JSON WEB TOKEN 
+IT IS AN ENCRYPTED HASH. IT can contain special info isnside it.
+this token is divided into 3 things:
+header (red), payload (pink)- secret data which i will hide inside the token from server, signature (blue)-jwt uses to check if this token is valid or not
+
+HOW TO CREATE A JWT TOKEN AND USE IT INSIDE YOUR COOKIE?
+NEED ONE MORE PACKAGE i.e JSONWEBTOKEN
+
+install that
+app.post("/login", async(req,res)=>{
+    try{
+        const {email , password } = req.body;
+        const user = await User.findOne({email:email});
+        if(!user){
+            throw new Error("Invalid credentials");
+        }
+        const isPasswordValid = await bcrypt.compare(password , user.password);
+        if(isPasswordValid){
+            //create a jwt token
+            //we will hide the user id inside token i.e the first param , second param is a secret key that only developer knows
+            //not the user or anyone
+            const token = await jwt.sign({_id:user._id},"DEV@Tinder$3498");
+            console.log(token);
+            //store it in cookie
+            //send the response back to user
+            
+            res.cookie("token",token);
+            res.send("User login successful");
+        }
+        else{
+            throw new Error("Invalid credentials");
+        }
+    }catch(err){
+        res.status(400).send("ERROR: "+ err.message);
+    }
+});
+now our jwt token is added to login api 
+PROCESS:
+a user is coming. logging with email pw.
+if validated , creating a token , hiding the user id inside it
+sending it back to user. 
+everytime you login it will create a new user 
+
+note: you make an api call. api call will not work unless you have the token. 
+only way to get the api call work and get the token is by logging in.
+so if you want to access the profile or any page of an user , you need to first login , you'll get the jwt token.
+GET API CALL :
+//get profile
+app.get("/profile",async(req,res)=>{
+    try{      
+    const cookies = req.cookies;
+    //extract token from cookies
+    const {token} = cookies;
+    //validate the token, if valid send the response back i.e accessing datanelse say please login
+    //or your cookie has expired
+    if(!token){
+        throw new error("Invalid Token");
+    }
+    const decodedmsg = await jwt.verify(token,"DEV@Tinder$3498");
+    
+    const {_id} = decodedmsg;
+    console.log("logged in user is: "+ _id);
+    const user = await User.findById(_id);
+    //token is valid but user doesnt exist
+    if(!user){
+        throw new Error("Username doesn't exist");
+    }
+    res.send(user);
+
+} catch(err){
+    res.status(400).send("error: "+ err.e)
+}});
+
+before than in login api we are checking if user email pw is valid or not:
+LOGIN: 
+app.post("/login", async(req,res)=>{
+    try{
+        const {email , password } = req.body;
+        const user = await User.findOne({email:email});
+        if(!user){
+            throw new Error("Invalid credentials");
+        }
+        const isPasswordValid = await bcrypt.compare(password , user.password);
+        if(isPasswordValid){
+            //create a jwt token
+            //we will hide the user id inside token i.e the first param , second param is a secret key that only developer knows
+            //not the user or anyone
+            const token = await jwt.sign({_id:user._id},"DEV@Tinder$3498");
+            console.log(token);
+            //store it in cookie
+            //send the response back to user
+            
+            res.cookie("token",token);
+            res.send("User login successful");
+        }
+        else{
+            throw new Error("Invalid credentials");
+        }
+    }catch(err){
+        res.status(400).send("ERROR: "+ err.message);
+    }
+});
+PROCESS OF JWT TOKENS:
+1. user is sending me an email and pw.
+2. server is validating whether email and pw correct. this happens in login.
+3. then it is creating a jwt token
+4. putting it inside cookie.
+5. sending it back 
+6. everytime cookie comes server will check whose cookie is it
+7. based on that it will give the profile access of that user.
+8. cookie has a hideen info that whose id it belongs to
+9. steps to sign & verify jwt tokens?
+Note:
+you have to add authentication in all the apis 
+CREATE YOUR AUTH MIDDLEWARE
+why do we need that first of all?
+we want all apis to work after authentication except signup and login. dont need authentication for that.
+all the other apis dont have a token check.
+NOTE
+when you call profile api 
+app.get("/profile", userAuth,async(req,res)=>{
+    first userauth middleware will be called
+    it will run the code
+    check the token validate it , find user and if everything goes well next fucntion will be called.
+    then 
+    async(req,res)=>{
+    try{      
+    const cookies = req.cookies;
+    //extract token from cookies
+    const {token} = cookies;
+    //validate the token, if valid send the response back i.e accessing datanelse say please login
+    //or your cookie has expired
+    if(!token){
+        throw new error("Invalid Token");
+    }
+    const decodedmsg = await jwt.verify(token,"DEV@Tinder$3498");
+    
+    const {_id} = decodedmsg;
+    const user = await User.findById(_id);
+    //token is valid but user doesnt exist
+    if(!user){
+        throw new Error("Username doesn't exist");
+    }
+    res.send(user);
+
+} catch(err){
+    res.status(400).send("error: "+ err.e)
+}});
+
+auth.js:
+const userAuth =async (req,res,next)=>{
+     //Read the token from the req cookies
+     //extract the token
+     try{
+     const {token} = req.cookies;
+     if(!token){
+        throw new Error("Token is not valid.");
+     }
+     //verify
+     const decodedObj = await jwt.verify(token , "DEV@Tinder$3498");
+     //get id from the decodedobj
+     const {_id} = decodedObj;
+     //if id is present find the user using id
+     const user = await User.findById(_id);
+     //if user not present
+     if(!user){
+        throw new Error("User not found");
+     }
+     //whatever user i found on the db i will attach it to the req and call next
+     req.user = user;
+     next()
+     }catch(err){
+        res.status(400).send("ERROR: "+err.message);
+     }
+
+};
+above function will be called
+ //whatever user i found on the db i will attach it to the req and call next
+
+so now updated profile api:
+//get profile
+app.get("/profile", userAuth,async(req,res)=>{
+    try{      
+    const user = req.user;
+    res.send(user);
+
+} catch(err){
+    res.status(400).send("error: "+ err.e)
+}});
+NOTE:
+always first login. 
+then hit the profile api. 
+if milani logging in then profile of milani will be given
+if arvind logs in then on profile api call arvind's profile will be sent 
+
+SENDCONNECTIO request
+app.post("/sendConnectionRequest", userAuth, async(req,res)=>{
+    try{
+        const user = req.user;
+        res.send(user.firstName+ " "+user.lastName +" requested to connect with you");
+    }catch(err){
+        res.send("Error: "+err.message);
+    }
+});
+we have added the userauth middleware whcih will authentivate the user
+will work on if  auser logs in then calls this api.
+so users not logged in cant call this api
+So going forward while creating any api use the middleware userauth 
+user needs to be authenticated only then will be able to request connetion accept like etc.
+
+USERAUTH IS VERY IMP AND IT IS A MIDDLEWARE 
+EXPIRE JWT TOKEN:
+
+Currently we are just using the jwt token and not expiring it
+app.post("/login", async(req,res)=>{
+    try{
+        const {email , password } = req.body;
+        const user = await User.findOne({email:email});
+        if(!user){
+            throw new Error("Invalid credentials");
+        }
+        const isPasswordValid = await bcrypt.compare(password , user.password);
+        if(isPasswordValid){
+            //create a jwt token
+            //we will hide the user id inside token i.e the first param , second param is a secret key that only developer knows
+            //not the user or anyone
+            const token = await jwt.sign({_id:user._id},"DEV@Tinder$3498",{expiresIn:"1D" });
+           
+            //store it in cookie
+            //send the response back to user
+            
+            res.cookie("token",token);
+            res.send("User login successful");
+        }
+        else{
+            throw new Error("Invalid credentials");
+        }
+    }catch(err){
+        res.status(400).send("ERROR: "+ err.message);
+    }
+});
+//check the above on how you can add the expire date.
+like 1d 2d 1h etc.
+so if expiry is 1d user will need to login every 1 day again
+and a new token is generated
+here you are just expiring your tokens. you can also expire your cookies.
+this is how you do it:
+res.cookie("token",token , {
+                expires: new Date(Date.now() + 8 *3600000),
+            });
