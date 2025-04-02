@@ -1333,4 +1333,25 @@ now currently we are handling apis in a very bad way.
 we are writing all the apis in one file app.js.
 we will now use express router to manage our apis.
 we have 13 apis now , will group them into small catgeroes and create separate routers for all apis.
-note: tinder groups 20 profiles in one api so you left right swipe 20 profiles and in that 1 api call is made then againa nother api 
+note: tinder groups 20 profiles in one api so you left right swipe 20 profiles and in that 1 api call is made then againa nother api .
+
+CREATING EXPRESS ROUTER
+create a folder routes
+auth.js: this router will manage all apis like login logout etc
+HOW TO CREATE A ROUTER?
+const express = require('express');
+const authRouter = express.Router();
+
+authRouter.get('/');
+module.exports = authRouter;
+note: router is used to manage routes when there are so many routes. to manage them well.
+# routing , middleware . request handlers.
+app.use("/",authRouter);
+go to authrouter and check is there any router matching with /.
+note: if suppose an api comes i.e /login , it will check / in app.use("/",authRouter); then go to authrouter and check all apis. and there it will find login api.then run the code from there.
+
+e.g2: if suppose an api comes i.e /profile , it will check and find / in app.use("/",authRouter);
+it will check all apis in this and will not find any match.
+will then go to next line i.e profile route. will find matching api and execute its code.
+so express js goes one by one.
+main jon of express is to whenever you get a route it tries to check fot all the rouetrs request handlers middlewares wherever any match found it will send the response back.

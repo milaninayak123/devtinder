@@ -60,3 +60,6 @@ suppose you went to a cyber cafe and logged in and forgot to log out. your acc w
 --create user schema method to get jwt token
 --create to comapre compare pws and take a pw input
 --list apis 
+--create routes folder for managing auth,profile,req routers
+--create authrouter , profilerouter etc
+--import them in app.js
