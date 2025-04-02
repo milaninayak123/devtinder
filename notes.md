@@ -1,3 +1,4 @@
+
 note:if you've above route handler it will always take the above route handler
 and even if you run /hello , /test routes etc it will not print the console of those routes but will print the routes of just /route.
 why?
@@ -1323,3 +1324,13 @@ userSchema.methods.validatePassword = async function(passwordInputByUser){
 }
 the above is a schema method
 end of video. this was s2e10 video. (imp one for jwt etc)
+
+S2 E11: 
+DIVING INTO APIS AND EXPRESS ROUTER
+build more apis and features.
+first list down all apis to add in this project
+now currently we are handling apis in a very bad way.
+we are writing all the apis in one file app.js.
+we will now use express router to manage our apis.
+we have 13 apis now , will group them into small catgeroes and create separate routers for all apis.
+note: tinder groups 20 profiles in one api so you left right swipe 20 profiles and in that 1 api call is made then againa nother api 
