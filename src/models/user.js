@@ -37,14 +37,10 @@ const userSchema = new mongoose.Schema({
     },
     gender:{
         type:String,
-        //custom validation function
-        //below validation func will only run whenb  you're creating  a new user not with update
-        validate(value){
-            const validGenders = ["male", "female"];
-            if(!validGenders.includes(value.toLowerCase())){
-                throw new Error(  `not a valid gender`);
-        }
-    }
+        enum:{
+            values: ["male","female","other"],
+            message: `{VALUE} is not a valid gender type`
+        },
     },
     photoUrl:{
         type:String,

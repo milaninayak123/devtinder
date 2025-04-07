@@ -14,6 +14,26 @@ const validateSignupData = (req)=>{
    
 };
 
+const validateEditProfileData = (req)=>{
+    const allowedEditFields = [
+        "firstName" , "lastName" , "email" , "age" , "skills" , "about" , "photoUrl"
+    ];
+    //check the input that user has done in user.body. if that is present in allowededitfields then edit can be done
+    const isEditAllowed = Object.keys(req.body).every((field)=>
+    allowedEditFields.includes(field)
+);
+return isEditAllowed;
+};
+const validateEditPassword = (req)=>{
+    const currentpw = req.body.currpassword;
+    if(currentpw==userAuth.password){
+        const newpw= req.body.newpassword;
+    }
+    
+    
+}
+
 module.exports = {
     validateSignupData,
+    validateEditProfileData
 }

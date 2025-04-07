@@ -198,6 +198,7 @@ app.get("/dashboard", (req, res) => {
     console.log("✅ Route Handler: Sending dashboard response...");
     res.send("Welcome to your dashboard!");
 });
+
 Middleware (app.use): Pre-processes request (logs, modifies, authenticates)
 e.g:Logging, authentication, validation
 Route Handler (app.get):Sends final response to client
@@ -251,7 +252,7 @@ Middleware helps in:
 
 ✅ Handling multiple requests efficiently by processing them before they reach the route handler.
 ✅ Authentication & Authorization by verifying users before allowing access to specific routes (e.g., /admin).
-✅ Modifying requests (e.g., logging, data validation) before sending a response.
+✅ Modifying requests (e.g., logging, d  ata validation) before sending a response.
 🔹 Example: A middleware can check if a user is an admin before allowing access to /admin, blocking unauthorized users. 🚀
 
 auth.js : to check authentication of /user /admin
@@ -1355,3 +1356,215 @@ it will check all apis in this and will not find any match.
 will then go to next line i.e profile route. will find matching api and execute its code.
 so express js goes one by one.
 main jon of express is to whenever you get a route it tries to check fot all the rouetrs request handlers middlewares wherever any match found it will send the response back.
+profile.js:
+profileRouter.get("/profile", userAuth,async(req,res)=>{
+    try{      
+    const user = req.user;
+    res.send(user);
+
+} catch(err){
+    res.status(400).send("error: "+ err.e)
+}});
+profileRouter.patch("/profile/edit", userAuth, async(req,res)=>{
+try{
+    if(!validateEditProfileData(req)) {
+        throw new Error("Invalid Edit Request");
+    }
+    res.send('edit successful');
+const loggedInUser = req.user;
+loggedInUser.firstName = req.body.firstName;
+loggedInUser.lastName = req.body.lastName;
+loggedInUser.age = req.body.age;
+loggedInUser.skills = req.body.skills;
+loggedInUser.email = req.body.email;
+loggedInUser.about = req.body.about;
+loggedInUser.photoUrl = req.body.photoUrl;
+
+console.log(loggedInUser);
+}catch(err){
+    res.status(400).send("ERROR: "+err.message);
+}
+});
+one thing in this api we did is hard coding.
+instead we will write like this:
+Object.keys(req.body).forEach((key) => (loggedInUser[key]= req.body[key]));
+here object.keys will give the age photoURl etc from req.body. foreach loop will run for every key in the body i.e for age about skills etc and for every key loggedinuser of that key e.g skill of that loggedinuser will be updated to the skill in req.body.
+loggedinuser represents req.user.
+we get that req.user from auth.js middleware
+
+CREATE CONNECTION REQUEST
+MAKE APIS SCHEMAS ETC.
+HOW WILL WE SEND CONNECTION REQ IN DB?
+BEST WAY IS TO KEEP IT AWAY FROM USER SCHEMA
+CREATE ONE MORE ANOTHER SCHEMA OF CONNECTION.
+now how to send connection req?
+const express = require('express');
+const requestRouter = express.Router();
+const {userAuth} = require("../middlewares/auth");
+const connectionRequestModel = require('../models/connectionRequest');
+
+//below api is just for interested and ignored. it can be either one of these.
+//to make sure of that you need to validate your data
+//make sure to handle corner cases. like 2 things. 1. first the thi g i mentioned above
+//2. if you sent p a request you cant send p request again , p cant send you request.
+
+requestRouter.post("/request/send/:status/:toUserId", userAuth, async(req,res)=>{
+    try{
+        //req.user is the user sending req.
+        const fromUserId = req.user._id;
+        const toUserId= req.params.toUserId;
+        const status = req.params.status;
+        const allowedStatus = ["ignored","interested"];
+        if(!allowedStatus.includes(status)){
+            return res.status(400).json({message:"Invalid status type: "+status});
+        }
+        //if already a request exists
+        const exisitingConnectionRequest = await connectionRequestModel.findOne({
+            //using or condition find
+            $or: [
+                     //if you have already sent req once
+                {fromUserId,toUserId},
+                //if both are trying to send eo req
+                {fromUserId :toUserId , toUserId:fromUserId},
+            ],
+        });
+        if(exisitingConnectionRequest){
+            return res.status(400).send("Connection Request already exists");
+        }
+        const connectionRequest = new connectionRequestModel(
+            {
+                fromUserId,
+                toUserId,
+                status,
+            }
+        );
+    const data = await connectionRequest.save();
+    res.json({
+        message: "connection req sent successfully",
+        data,
+    });
+    }catch(err){
+        res.status(400).send("ERROR: "+ err.message);
+    }
+    
+   
+});
+
+module.exports = requestRouter;
+connection.js
+//here we are avoding  a deadlock. that a is trying to send a req to b , b is tryin to send req to a.
+//below api is just for interested and ignored. it can be either one of these.
+//to make sure of that you need to validate your data
+//make sure to handle corner cases. like 3 things. 1. first the thi g i mentioned above
+//2. if you sent p a request you cant send p request again , p cant send you request.
+//3. check if the id to which you are sending req it exists or not. you can send req to any random id
+
+note: learn about schema methods and schema pre.
+ONE WAY OF WRITING YOUR CODE:
+//below will execute when you call the save function ,before save tjis will execute and will check if your from and to user idsa resame ot not. if not next() func will be called.
+
+connectionRequestSchema.pre("save", function(next){
+    const connectionRequest= this;
+    //check if from user id same as to user id
+    if(connectionRequest.fromUserId.equals(connectionRequest.toUserId)){
+        throw new Error("Cannot send req to yourself!!");
+    }
+    next();
+});
+
+HOW TO PUT AN INDEX IN YOUR DATABASE?
+INDEXES AND COMPOUND INDEXES in mongodb
+JOB OF INDEX: MAKE YOUR QUERY FASTER
+You need indexes in your database. 
+An index in a database is like the index at the back of a book — it helps you quickly find the data you're looking for without scanning every document.
+
+🚀 Why Do We Need Indexes?
+When the database grows (e.g., millions of users or requests), searching becomes slow.
+
+Indexes make read/search queries faster and more efficient.
+
+Without indexes, MongoDB performs a collection scan — checking every document one by one.
+
+🧠 Example Use Case
+In a dating app like DevTinder:
+
+You search users by email every time they log in.
+
+Without an index, the login API will get slower as the user base increases.
+
+Creating an index on email speeds this up.
+
+✅ MongoDB Automatically Creates Indexes:
+If a field is set as unique: true, MongoDB automatically creates an index for it.
+
+js
+Copy code
+email: {
+  type: String,
+  unique: true
+}
+🛠️ How to Create Indexes Manually
+You can create indexes on any field using:
+
+js
+Copy code
+Schema.index({ fieldName: 1 }); // 1 for ascending, -1 for descending
+Example:
+
+js
+Copy code
+UserSchema.index({ email: 1 }); // Index on email for faster search
+🔗 Compound / Combined Indexing
+If you're searching using multiple fields, indexing only one field won’t help much.
+
+You should use compound indexing:
+
+js
+Copy code
+connectionRequestSchema.index({ fromUserId: 1, toUserId: 1 });
+This speeds up queries like:
+
+js
+Copy code
+ConnectionRequest.findOne({ fromUserId, toUserId });
+⚠️ Things to Keep in Mind
+Too many indexes = more storage & write overhead.
+
+Indexes speed up read operations, but slow down write operations slightly (because index also has to be updated).
+
+Use indexes only on fields that are frequently searched or sorted.
+
+📝 Quick Summary
+Concept	Purpose
+index: true	Manually create index on a field
+unique: true	Auto creates unique index
+Schema.index({})	Used for compound indexes
+Index improves	Read/Search speed
+Too many indexes    Increases write cost & memory usage
+and all of these will be written in the model/schema file.
+
+Advantages of Creating Indexes
+Faster query performance – Indexes allow MongoDB to locate data without scanning the entire collection.
+
+Improves API response time – Especially useful for login/search features (e.g., finding users by email).
+
+Helps with scalability – Keeps queries fast even when the database grows large.
+
+Enables efficient sorting – Indexes make sort() operations much faster.
+
+Used in aggregations – Stages like $match in aggregation pipelines benefit from indexes.
+
+Enforces uniqueness – Fields like email can use unique: true to avoid duplicates.
+
+Supports compound queries – Compound indexes optimize queries that use multiple fields.
+
+❌ Disadvantages of Creating Indexes
+Slows down write operations – Insert/update/delete operations become slightly slower due to index updates.
+
+Consumes extra storage – Each index takes up disk space.
+
+Maintenance overhead – Too many indexes can make the database harder to manage.
+
+Not always effective – If queries don’t match the index fields properly, the index won’t be used.
+
+Can reduce performance if misused – Unnecessary or poorly chosen indexes can actually degrade performance.

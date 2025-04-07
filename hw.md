@@ -63,3 +63,11 @@ suppose you went to a cyber cafe and logged in and forgot to log out. your acc w
 --create routes folder for managing auth,profile,req routers
 --create authrouter , profilerouter etc
 --import them in app.js
+-- write forgit pw api
+-- learn about indexing. 
+-- adv and disadv of indexes.
+-- create connection request schema
+-- proper validation of data
+-- think about all corner cases
+-- read about queries like not equal to etc to write in mongodb for $or $and and more logical queries
+-- create schema.pre("save") function

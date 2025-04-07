@@ -15,8 +15,7 @@ we will create separate routers for group f apis like below
 
 ## ROUTER3:
 ## ConnectionRequestRouter
--POST /request/send/interested/:userId
--POST /request/send/ignored/:userId
+-POST /request/send/:status/:userId ||masde the status dynamic it can be accepted or rejected
 -POST /request/review/accepted/:requestId
 -POST /request/review/rejected/:requestId
 

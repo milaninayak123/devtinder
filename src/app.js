@@ -24,7 +24,8 @@ connectDB()
     });
 })
 .catch((err)=>{
-    console.log("db cant be connected");
+    
+    console.log("db can't be connected. Error: " , err);
 });
 
 

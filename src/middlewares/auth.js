@@ -1,7 +1,9 @@
 const jwt = require('jsonwebtoken');
 const User = require("../models/user");
 //userauth middleware is checking if token exists and user is found we will call the next(). it will call the request handler like profile
+//you will get the logged in user info using this middleware
 
+//req.user gives the info of current loggedin user
 
 const userAuth =async (req,res,next)=>{
      //Read the token from the req cookies

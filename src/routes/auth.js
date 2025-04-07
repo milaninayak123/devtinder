@@ -29,28 +29,45 @@ authRouter.post('/signup',async(req,res)=>{
 
 authRouter.post('/login',async(req,res)=>{
     try{
+        //user passed email pw
         const {email , password } = req.body;
+        //check user is there or not
         const user = await User.findOne({email:email});
+        //if user not there
         if(!user){
             throw new Error("Invalid credentials");
         }
-        //below arg is the pw sent by user. passing it in a func declared in user.js
-    
+
+        //below arg is the pw sent by user. passing it in a func declared in user.js   
+        //below we check the pw after checking above that email is valid 
         const isPasswordValid = await user.validatePassword(password);
+        //if password is valid and login successful , we send the cookie with a token
+        //for every user a diff token is generated
+        //whenever now you make a call to some other api like profile same token is used to authorize the user
         if(isPasswordValid){
-            //whatever the urrent user is the user token will come back
+            //we generate a token for the logged in current user
             const token = await user.getJWT();
+            //we send this cookie
             res.cookie("token",token , {
                 expires: new Date(Date.now() + 8 *3600000),
             });
             res.send("User login successful");
         }
+        //if user email exists but pw is wrong
         else{
             throw new Error("Invalid credentials");
         }
     }catch(err){
         res.status(400).send("ERROR: "+ err.message);
     }
+})
+
+authRouter.post('/logout',async(req,res)=>{
+    //set cookie token to null and expiring in the moment
+    res.cookie("token", null , {
+        expires: new Date(Date.now()),
+    });
+    res.send("user logged out");
 })
 module.exports = authRouter;
 
