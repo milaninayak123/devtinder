@@ -11,11 +11,12 @@ app.use(cookieParser());
 const authRouter = require("./routes/auth");
 const profileRouter = require("./routes/profile");
 const requestRouter= require("./routes/request");
-
+const userRouter = require("./routes/getuser");
 //how to use these above routes? like we write middleware
 app.use("/",authRouter);
 app.use("/",profileRouter);
 app.use("/",requestRouter);
+app.use("/",userRouter);
 connectDB()
     .then(() => {
     console.log("database connection established");

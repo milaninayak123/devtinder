@@ -1511,8 +1511,6 @@ Copy code
 Schema.index({ fieldName: 1 }); // 1 for ascending, -1 for descending
 Example:
 
-js
-Copy code
 UserSchema.index({ email: 1 }); // Index on email for faster search
 🔗 Compound / Combined Indexing
 If you're searching using multiple fields, indexing only one field won’t help much.
@@ -1572,3 +1570,32 @@ note: always take care of corner cases else that will be an oppurtunity for atta
 
 E13:
 REF, POPULATE AND THOUGHT PROCESS OF WRIITNG APIS
+
+note: thought process of writing post apis is diff from writing get apis. 
+Thought Process - POST VS GET API
+How can an attacker exploit your POST api?
+by sending random data into api and we put that data into db.
+
+How can an attacker exploit your GET api?
+they can get some information.
+here we will make sure we are only sending allowed data. authorize the user , we are sedning info to correct user
+
+
+NOTE:
+        const connectionRequests = await connectionRequestModel.find({
+            //to find all connections of a user , loggedinuserid should be = touserid (to whom req was sent)
+            toUserId : loggedInUser._id,
+            //also touserid can be accepted & ignored. we need to specify that return those touserids whose status is pending and that is interested status
+            status : "interested",
+        }).populate("fromUserId",["firstName" , "lastName"]);
+
+        create a link bw two collections connectionRequest and users by creating a ref and by that you can fetch any data from user like name etc and populate it in fromUSerId 
+        .populate("fromUserId",["firstName" , "lastName"]); if you dont mention second argument all the data of those users who requested will be sent which is wrong.
+        so second arg is like a filter. 
+        
+SO POPULATE & REF ARE 2 IMP CONCEPTS LEARNT
+#add ref in the schema object.
+
+MIDDLEWARE: series of components that form a pipeline through which every http requests and response flows. it examines the incoming req, modifies the request / response if needed , invoke the next middleware in the pipeline if exists , or short circuits the process and responds itself.
+
+ROUTING: match incoming http requests to specific end points.

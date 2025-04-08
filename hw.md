@@ -71,3 +71,6 @@ suppose you went to a cyber cafe and logged in and forgot to log out. your acc w
 -- think about all corner cases
 -- read about queries like not equal to etc to write in mongodb for $or $and and more logical queries
 -- create schema.pre("save") function
+-- ref and .populate
+-- create get api from receiving pending requests
+-- OR QUERY LEARN ABT IT

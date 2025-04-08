@@ -67,7 +67,7 @@ requestRouter.post("/request/review/:status/:requestId",
        const {status , requestId} = req.params;
        //logic for accept or reject
        //before starting be clear of corner cases
-       const allowedStatus = ["accepted" , "not accepted"];
+       const allowedStatus = ["accepted" , "rejected"];
        if(!allowedStatus.includes(status)){
         return res.status(400).json({message:"Invalid status"});
        }
