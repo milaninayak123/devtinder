@@ -1568,3 +1568,7 @@ Maintenance overhead – Too many indexes can make the database harder to manage
 Not always effective – If queries don’t match the index fields properly, the index won’t be used.
 
 Can reduce performance if misused – Unnecessary or poorly chosen indexes can actually degrade performance.
+note: always take care of corner cases else that will be an oppurtunity for attackers.
+
+E13:
+REF, POPULATE AND THOUGHT PROCESS OF WRIITNG APIS

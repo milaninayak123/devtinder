@@ -15,9 +15,10 @@ we will create separate routers for group f apis like below
 
 ## ROUTER3:
 ## ConnectionRequestRouter
--POST /request/send/:status/:userId ||masde the status dynamic it can be accepted or rejected
--POST /request/review/accepted/:requestId
--POST /request/review/rejected/:requestId
+-POST /request/send/:status/:userId |
+ status dynamic it can be accepted or not accepted
+
+-POST /request/review/:status/:requestId
 
 ## ROUTER4
 ## UserRouter
@@ -29,7 +30,7 @@ we will create separate routers for group f apis like below
 note:
 ---------------------------------------------------
 for connection request we've diff status
-ignore (on left swiping)
+not interested (on left swiping)
 interested //a has sent a connection req to b (on right swiping)
 accepted //b has accepted the req of a 
 rejected // b has rejected the req of a 

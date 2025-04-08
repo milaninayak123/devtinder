@@ -57,5 +57,61 @@ requestRouter.post("/request/send/:status/:toUserId", userAuth, async(req,res)=>
     
    
 });
+//here also you need auth middleware since you need user to be logged in for user to accept
+requestRouter.post("/request/review/:status/:requestId", 
+    userAuth, 
+    async(req,res)=>{
+    try{
+        //below ddone by userAuth
+       const loggedInUser = req.user; 
+       const {status , requestId} = req.params;
+       //logic for accept or reject
+       //before starting be clear of corner cases
+       const allowedStatus = ["accepted" , "not accepted"];
+       if(!allowedStatus.includes(status)){
+        return res.status(400).json({message:"Invalid status"});
+       }
+//check if id is correct or not
+ const connectionRequest=await connectionRequestModel.findOne({
+    _id: requestId,
+    toUserId: loggedInUser._id,
+    status:"interested",
+ });
+if(!connectionRequest){
+    return res.status(404)
+    .json({message: "Connection req not found!"});
+}
+//if all needs fulfilled
+//below status is updated with accepted or not accepted
+connectionRequest.status = status;   
+const data = await connectionRequest.save();
+res.json({message: "Connection Request: "+ status , data});
+    }catch(err){
+        res.status(400).send("ERROR: "+ err.message);
+    }
+});
 
 module.exports = requestRouter;
+
+
+
+/*
+corner cases for accept api:
+e.g: akshay sent req to elon
+//validate the status. 
+1. check if elon is loggedin. 
+2. only toUSerId is authorised to accept that particluar req.
+3. accepted or not accepted can only happen if status from fromuserid is interested
+if not interested no accept or rejct. status should be interested.
+4. reqid should be valid pr present in db
+*/
+
+/*
+steps of wriitng :
+check user loggedin using the middleware
+add allowed statuses
+if status inputted by user not in allowedstatus throw err
+dynamic status how will you allow? you will have to read it by extracting the status from req.params. like this:     const {status , requestId} = req.params;
+now once status is checked , check if requestid present in db or not
+
+*/
