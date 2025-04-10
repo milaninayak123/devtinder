@@ -87,6 +87,14 @@ userRouter.get("/feed", userAuth , async(req,res)=>{
         // you will only see those cards whose profile never seen before
         //to all the people you have sent or from all you have received you should not see thm in profile
         const loggedInUser = req.user;
+        //if you dont pass anything by default it will take page as 1 limit as 10.
+        // we will parse the page and limit sent by user in query in req and if not sent anything default will be limit of 10
+        const page = parseInt(req.query.page) || 1;
+        let limit = parseInt(req.query.limit) || 10;
+        //if someone sending limit more than 50 then return 50 documents
+        limit = limit >50 ? 50 : limit;
+        const skip = (page-1)*limit;
+
         //find all connectionrequests that i have either sent or received
         const connectionRequests = await connectionRequestModel.find({
             $or: [
@@ -110,8 +118,11 @@ userRouter.get("/feed", userAuth , async(req,res)=>{
            $and:[ {_id: {$nin: Array.from(hideUsersFromFeed)},},
             {_id: {$ne: loggedInUser._id}},
            ],
-        }).select(USER_SAFE_DATA);
-        res.send(users)
+        })
+        .select(USER_SAFE_DATA)
+        .skip(skip)
+        .limit(limit);
+        res.json({data:users});
     }catch(err){
         res.status(400).json({message: err.message});
     }

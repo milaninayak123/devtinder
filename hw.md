@@ -74,3 +74,6 @@ suppose you went to a cyber cafe and logged in and forgot to log out. your acc w
 -- ref and .populate
 -- create get api from receiving pending requests
 -- OR QUERY LEARN ABT IT
+-- logic for feed api
+explore $nin , $and and other queries
+-- LEARN DIFF BW REQ.PARAMS AND REQ.QUERY HOW TO PASS THEM

@@ -1652,3 +1652,40 @@ suppose db has 1000s of users.
 when an user logins i dont want him/her to get 999 profiles at the same time.
 api should only return 10 users at a time.
 we want to add a feature of pagination.
+
+PAGINATION:
+in get api you can add query params.
+/feed?page=1limit=10 (means page=1 and limit is 10) => first 10 users 1-10
+
+/feed?page=2 limit=10 => 11-20 => skip(10) & limit(10)
+/feed?page=3 limit=10 => skip 20 records and give 10 records
+
+in mongodb we have 2 funcs
+.skip() & .limit()
+.limit() means how many documents you want
+.skip() means how many documents to skip from starting
+.skip(0) & .limit(10) means skipping 0 users and adding 10 users document to feed
+
+LEARN DIFF BW REQ.PARAMS AND REQ.QUERY HOW TO PASS THEM
+params is passed like :1w2e
+query is passed like: ?ksxws
+
+PAGINATION: using the limit function an attacker can attack by sending limit as 100000 or so if we have many users and this will freeze or hang the db because it is making such an expensive query. 
+so this is called sanitization.
+so its important to set a limit for each page.
+each page should contain around 10 documents.
+
+
+
+ENHANCEMENTS TO MAKE IN THIS PROJECT:
+1. IF WE HAVE 100000 USERS , we should show in feed the users who have similar skills etc
+2. you can add filters. user wants to see all users with skills set js they want to connect with them.
+
+
+NOTE: ALWAYS KEEP YOUR RESPONSES STANDARD. FOR EVERY API.
+E.G: res.send(users)
+OR FOLLOW:
+res.json({data:users});
+//so you create an object , attach data and msg if you want to.
+
+ADVICE: always send response in json format.
