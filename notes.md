@@ -1599,3 +1599,56 @@ SO POPULATE & REF ARE 2 IMP CONCEPTS LEARNT
 MIDDLEWARE: series of components that form a pipeline through which every http requests and response flows. it examines the incoming req, modifies the request / response if needed , invoke the next middleware in the pipeline if exists , or short circuits the process and responds itself.
 
 ROUTING: match incoming http requests to specific end points.
+
+FEED API:
+//get feed api. when user logins , he will see others data in feed. 
+userRouter.get("/feed", userAuth , async(req,res)=>{
+    try{
+        //User should see all the user cards except
+        //0. his own card
+        //1. his own connections
+        //2. ignored people
+        //3. already sent the conn req
+        //e.g: rahul ,akshay,elon,makr,donald,ms dhoni , virat
+        //rahul should see everyone except him on feed
+        // if rahul sent req to elon he should everyone but not elon and himself
+        // if elon rejected akshay , never show again akshay , if accepted elon then also no not in feed
+        //  elon will see everyone but rahul
+        // akshay will see everyone but rahul 
+        // you will only see those cards whose profile never seen before
+        //to all the people you have sent or from all you have received you should not see thm in profile
+        const loggedInUser = req.user;
+        //find all connectionrequests that i have either sent or received
+        const connectionRequests = await connectionRequestModel.find({
+            $or: [
+                //all req that i have either sent or received
+                { fromUserId: loggedInUser._id} ,
+                {toUserId: loggedInUser._id}
+            ]
+        }).select("fromUserId toUserId");
+//set ds is a ds that stores only unique values
+        const hideUsersFromFeed = new Set();
+        connectionRequests.forEach((req) => {
+            // to every id i have sent request or from every id i have received req will be added to hide set
+            hideUsersFromFeed.add(req.fromUserId.toString());
+            hideUsersFromFeed.add(req.toUserId.toString());
+        });
+        console.log(hideUsersFromFeed);
+        //find all users who are not in the array hideusersfromfeed. nin mean not in
+        //also find users who is not equal to himself
+        //below is a func to convert set to an array
+        const users = await User.find({
+           $and:[ {_id: {$nin: Array.from(hideUsersFromFeed)},},
+            {_id: {$ne: loggedInUser._id}},
+           ],
+        }).select(USER_SAFE_DATA);
+        res.send(users)
+    }catch(err){
+        res.status(400).json({message: err.message});
+    }
+})
+FEED API is made now. understand the logic.
+suppose db has 1000s of users.
+when an user logins i dont want him/her to get 999 profiles at the same time.
+api should only return 10 users at a time.
+we want to add a feature of pagination.
