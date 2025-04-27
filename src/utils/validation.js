@@ -1,4 +1,7 @@
 const validator = require('validator');
+const User = require("../models/user");
+
+
 const validateSignupData = (req)=>{
     //from the req.body extract all the fields. do js axtraction. then validate the field one by one
     const {firstName , lastName , email , password} = req.body;
@@ -16,12 +19,15 @@ const validateSignupData = (req)=>{
 
 const validateEditProfileData = (req)=>{
     const allowedEditFields = [
-        "firstName" , "lastName" , "email" , "age" , "skills" , "about" , "photoUrl"
+        "firstName" , "lastName"  , "age" , "skills" , "about" , "photoUrl" , "gender"
     ];
     //check the input that user has done in user.body. if that is present in allowededitfields then edit can be done
     const isEditAllowed = Object.keys(req.body).every((field)=>
     allowedEditFields.includes(field)
 );
+if(!isEditAllowed){
+    throw new Error("Invalid updates! Only allowed fields can be updated and email cannot be updated.")
+}
 return isEditAllowed;
 };
 const validateEditPassword = (req)=>{

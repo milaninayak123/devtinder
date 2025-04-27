@@ -4,7 +4,7 @@ const userRouter = express.Router();
 const {userAuth}= require("../middlewares/auth");
 const connectionRequestModel = require("../models/connectionRequest");
 const User = require("../models/user");
-const USER_SAFE_DATA = "firstName lastName photoUrl about"
+const USER_SAFE_DATA = "firstName lastName photoUrl about gender age"
 //GET all the pending connection request for the loggedIn user
 userRouter.get("/user/requests/pending",userAuth , async(req,res)=>{
     try{

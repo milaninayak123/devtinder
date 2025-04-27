@@ -44,7 +44,7 @@ const userSchema = new mongoose.Schema({
     },
     photoUrl:{
         type:String,
-        default:"https://img.freepik.com/premium-vector/gray-avatar-icon-vector-illustration_276184-163.jpg",
+        default:"https://i.pinimg.com/736x/b6/e3/1a/b6e31a84c99848a3822f8770db472627.jpg",
         
     },
     about:{
